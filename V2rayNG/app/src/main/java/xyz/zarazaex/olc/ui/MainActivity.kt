@@ -18,6 +18,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -75,6 +76,19 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         setupToolbar(binding.toolbar, false, getString(R.string.app_name))
+
+        // edge-to-edge: контент идёт под статус-бар, AppBarLayout тянется под него же
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.appBarLayout) { v, insets ->
+            v.setPadding(0, insets.getInsets(WindowInsetsCompat.Type.statusBars()).top, 0, 0)
+            insets
+        }
+        // Нижние кнопки поднимаются над навигационной панелью
+        ViewCompat.setOnApplyWindowInsetsListener(binding.bottomContainer) { v, insets ->
+            val navBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+            v.setPadding(0, 0, 0, navBarHeight)
+            insets
+        }
 
         groupPagerAdapter = GroupPagerAdapter(this, emptyList())
         binding.viewPager.adapter = groupPagerAdapter
@@ -171,15 +185,15 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
         mainViewModel.isTesting.observe(this) { testing ->
             setButtonsEnabled(!testing)
             if (testing) {
-                // Allow stopping the test
                 binding.btnSummaryLite.isEnabled = true
                 binding.btnSummaryLite.alpha = 1.0f
+                binding.btnSummaryLite.setImageResource(R.drawable.ic_stop_24dp)
+                binding.btnSummaryLite.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_active))
             } else {
                 binding.btnSummaryLite.setImageResource(R.drawable.bolt_24)
-                // Re-apply running state to set correct enabled state
-                val isRunning = mainViewModel.isRunning.value == true
-                binding.btnSummaryLite.isEnabled = !isRunning
-                binding.btnSummaryLite.alpha = if (isRunning) 0.5f else 1.0f
+                binding.btnSummaryLite.isEnabled = true
+                binding.btnSummaryLite.alpha = 1.0f
+                binding.btnSummaryLite.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_inactive))
             }
         }
 
@@ -414,6 +428,16 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
 
     private fun showStatus(resId: Int) = showStatus(getString(resId))
 
+    private fun accentColor(): ColorStateList {
+        val typedValue = android.util.TypedValue()
+        theme.resolveAttribute(androidx.appcompat.R.attr.colorPrimary, typedValue, true)
+        val color = if (typedValue.resourceId != 0)
+            ContextCompat.getColor(this, typedValue.resourceId)
+        else
+            typedValue.data
+        return ColorStateList.valueOf(color)
+    }
+
     private  fun applyRunningState(isLoading: Boolean, isRunning: Boolean) {
         if (isLoading) {
             binding.fab.isEnabled = false
@@ -424,27 +448,22 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
         if (isRunning) {
             binding.fab.isEnabled = true
             binding.fab.alpha = 1.0f
-            binding.fab.setImageResource(R.drawable.security_24)
-            binding.fab.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_active))
-            binding.btnSummaryLite.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_active))
+            binding.fab.backgroundTintList = accentColor()
+            binding.btnSummaryLite.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_inactive))
             binding.fab.contentDescription = getString(R.string.action_stop_service)
             setTestState(getString(R.string.connection_connected))
             binding.layoutTest.isFocusable = true
-            // Block lightning while VPN is connected (unless test is running)
-            if (mainViewModel.isTesting.value != true) {
-                binding.btnSummaryLite.isEnabled = false
-                binding.btnSummaryLite.alpha = 0.5f
-            }
+            // Молния всегда активна — пользователь может запустить тест даже при работающем VPN
+            binding.btnSummaryLite.isEnabled = true
+            binding.btnSummaryLite.alpha = 1.0f
         } else {
             binding.fab.isEnabled = true
             binding.fab.alpha = 1.0f
-            binding.fab.setImageResource(R.drawable.shield_24)
             binding.fab.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_inactive))
             binding.btnSummaryLite.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_inactive))
             binding.fab.contentDescription = getString(R.string.tasker_start_service)
             setTestState(getString(R.string.connection_not_connected))
             binding.layoutTest.isFocusable = false
-            // Enable lightning when VPN is disconnected
             binding.btnSummaryLite.isEnabled = true
             binding.btnSummaryLite.alpha = 1.0f
         }

@@ -1,7 +1,6 @@
 package xyz.zarazaex.olc.ui
 
 import android.content.Context
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -16,7 +15,6 @@ import androidx.core.view.WindowCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.MaterialToolbar
-import com.google.android.material.color.MaterialColors
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import xyz.zarazaex.olc.R
 import xyz.zarazaex.olc.handler.SettingsManager
@@ -187,13 +185,10 @@ abstract class BaseActivity : AppCompatActivity() {
     }
 
     private fun syncStatusBarWithToolbar(toolbar: Toolbar) {
-        val toolbarColor = (toolbar.background as? ColorDrawable)?.color
-            ?: toolbar.backgroundTintList?.defaultColor
-            ?: MaterialColors.getColor(toolbar, com.google.android.material.R.attr.colorSurface)
-
-        window.statusBarColor = toolbarColor
+        // Статус-бар прозрачный (задан в теме). Управляем только цветом иконок.
+        val bgColor = ContextCompat.getColor(this, R.color.md_theme_surface)
         WindowCompat.getInsetsController(window, window.decorView)?.isAppearanceLightStatusBars =
-            ColorUtils.calculateLuminance(toolbarColor) > 0.5
+            ColorUtils.calculateLuminance(bgColor) > 0.5
     }
 
     /**

@@ -32,8 +32,9 @@ class AngApplication : Application() {
      */
     override fun onCreate() {
         super.onCreate()
-        // Apply Material You dynamic colors (Android 12+)
-        DynamicColors.applyToActivitiesIfAvailable(this)
+        // DynamicColors отключён — на Android 12-15 он красит статус-бар в акцент ОС
+        // и это нельзя переопределить через statusBarColor
+        // DynamicColors.applyToActivitiesIfAvailable(this)
 
         val mmkvDir = java.io.File(filesDir, "mmkv")
         if (!java.io.File(mmkvDir, "MAIN").exists()) {
