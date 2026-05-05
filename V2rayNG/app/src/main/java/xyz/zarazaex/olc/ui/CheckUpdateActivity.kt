@@ -2,6 +2,7 @@ package xyz.zarazaex.olc.ui
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.TextView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.lifecycle.lifecycleScope
 import xyz.zarazaex.olc.AppConfig
@@ -64,15 +65,20 @@ class CheckUpdateActivity : BaseActivity() {
 
     private fun showUpdateDialog(result: CheckUpdateResult) {
         val message = result.releaseNotes?.let { MarkdownUtil.parseBasic(it) } ?: ""
-        MaterialAlertDialogBuilder(this)
-            .setTitle(getString(R.string.update_new_version_found, result.latestVersion))
+        val titleStr = getString(R.string.update_new_version_found, result.latestVersion)
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(titleStr)
             .setMessage(message)
             .setPositiveButton(R.string.update_now) { _, _ ->
                 result.downloadUrl?.let {
                     Utils.openUri(this, it)
                 }
             }
-            .setNegativeButton("Позже", null)
-            .show()
+            .create()
+        dialog.show()
+        val titleView = layoutInflater.inflate(R.layout.dialog_title_with_close, null)
+        titleView.findViewById<TextView>(R.id.dialog_title_text).text = titleStr
+        titleView.findViewById<android.widget.ImageButton>(R.id.dialog_close_btn).setOnClickListener { dialog.dismiss() }
+        dialog.setCustomTitle(titleView)
     }
 }

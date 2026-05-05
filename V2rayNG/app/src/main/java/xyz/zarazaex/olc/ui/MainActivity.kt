@@ -9,6 +9,8 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -185,16 +187,22 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
         mainViewModel.updateTestResultAction.observe(this) { setTestState(it) }
 
         mainViewModel.isTesting.observe(this) { testing ->
-            setButtonsEnabled(!testing)
             if (testing) {
+                // Во время теста: блокируем всё кроме кнопки молнии (стоп)
+                binding.fab.isEnabled = false
+                binding.fab.alpha = 0.5f
+                val menu = binding.toolbar.menu
+                menu.findItem(R.id.real_ping_all)?.let { it.isEnabled = false; it.icon?.alpha = 128 }
+                menu.findItem(R.id.filter_by_country)?.let { it.isEnabled = false; it.icon?.alpha = 128 }
+                menu.findItem(R.id.sub_update)?.let { it.isEnabled = false; it.icon?.alpha = 128 }
+                // Молния — стоп-кнопка, всегда активна во время теста
                 binding.btnSummaryLite.isEnabled = true
                 binding.btnSummaryLite.alpha = 1.0f
                 binding.btnSummaryLite.setImageResource(R.drawable.ic_stop_24dp)
                 binding.btnSummaryLite.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_active))
             } else {
+                setButtonsEnabled(true)
                 binding.btnSummaryLite.setImageResource(R.drawable.bolt_24)
-                binding.btnSummaryLite.isEnabled = true
-                binding.btnSummaryLite.alpha = 1.0f
                 binding.btnSummaryLite.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_inactive))
             }
         }
@@ -267,7 +275,8 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
     private fun setButtonsEnabled(enabled: Boolean) {
         binding.fab.isEnabled = enabled
         binding.fab.alpha = if (enabled) 1.0f else 0.5f
-        // btnSummaryLite stays enabled (to allow stopping the test), but visually dim non-test buttons
+        binding.btnSummaryLite.isEnabled = enabled
+        binding.btnSummaryLite.alpha = if (enabled) 1.0f else 0.5f
         val menu = binding.toolbar.menu
         menu.findItem(R.id.real_ping_all)?.let {
             it.isEnabled = enabled
@@ -457,35 +466,26 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
 
     private fun applyRunningState(isLoading: Boolean, isRunning: Boolean) {
         if (isLoading) {
-            binding.fab.isEnabled = false
-            binding.fab.alpha = 0.5f
+            // Идёт процесс подключения/отключения — блокируем всё
             setButtonsEnabled(false)
+            binding.fab.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_inactive))
             return
         }
 
         if (isRunning) {
-            binding.fab.isEnabled = true
-            binding.fab.alpha = 1.0f
+            setButtonsEnabled(true)
             binding.fab.backgroundTintList = accentColor()
             binding.btnSummaryLite.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_inactive))
             binding.fab.contentDescription = getString(R.string.action_stop_service)
             setTestState(getString(R.string.connection_connected))
             binding.layoutTest.isFocusable = true
-            // Молния всегда активна — пользователь может запустить тест даже при работающем VPN
-            binding.btnSummaryLite.isEnabled = true
-            binding.btnSummaryLite.alpha = 1.0f
-            setButtonsEnabled(true)
         } else {
-            binding.fab.isEnabled = true
-            binding.fab.alpha = 1.0f
+            setButtonsEnabled(true)
             binding.fab.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_inactive))
             binding.btnSummaryLite.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_inactive))
             binding.fab.contentDescription = getString(R.string.tasker_start_service)
             setTestState(getString(R.string.connection_not_connected))
             binding.layoutTest.isFocusable = false
-            binding.btnSummaryLite.isEnabled = true
-            binding.btnSummaryLite.alpha = 1.0f
-            setButtonsEnabled(true)
         }
     }
 
@@ -900,14 +900,13 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
 
                 val checked = BooleanArray(codes.size) { codes[it] in excludedByFilter }
 
-                MaterialAlertDialogBuilder(this@MainActivity)
+                val dialog = MaterialAlertDialogBuilder(this@MainActivity)
                     .setTitle("Исключить страны")
                     .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
                         checked[which] = isChecked
                     }
                     .setPositiveButton("Применить") { _, _ ->
                         val excluded = codes.filterIndexed { i, _ -> checked[i] }.toSet()
-                        // Convert excluded set to include filter (empty = show all)
                         val included = if (excluded.isEmpty()) emptySet()
                             else allCodes - excluded
                         mainViewModel.applyCountryFilter(included)
@@ -919,8 +918,9 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
                         mainViewModel.applyCountryFilter(emptySet())
                         showStatus("Показаны все страны")
                     }
-                    .setNegativeButton("Отмена", null)
-                    .show()
+                    .create()
+                dialog.show()
+                dialog.setCustomTitle(buildDialogTitleWithClose("Исключить страны") { dialog.dismiss() })
             }
         }
     }
@@ -944,18 +944,27 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
     
     private fun showUpdateAvailableDialog(result: xyz.zarazaex.olc.dto.CheckUpdateResult) {
         val message = result.releaseNotes?.let { xyz.zarazaex.olc.util.MarkdownUtil.parseBasic(it) } ?: ""
-        MaterialAlertDialogBuilder(this)
-            .setTitle(getString(R.string.update_new_version_found, result.latestVersion))
+        val titleStr = getString(R.string.update_new_version_found, result.latestVersion)
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(titleStr)
             .setMessage(message)
             .setPositiveButton(R.string.update_now) { _, _ ->
                 result.downloadUrl?.let {
                     Utils.openUri(this, it)
                 }
             }
-            .setNegativeButton("Позже", null)
-            .show()
+            .create()
+        dialog.show()
+        dialog.setCustomTitle(buildDialogTitleWithClose(titleStr) { dialog.dismiss() })
     }
-    
+
+    private fun buildDialogTitleWithClose(title: String, onClose: () -> Unit): View {
+        val view = layoutInflater.inflate(R.layout.dialog_title_with_close, null)
+        view.findViewById<TextView>(R.id.dialog_title_text).text = title
+        view.findViewById<android.widget.ImageButton>(R.id.dialog_close_btn).setOnClickListener { onClose() }
+        return view
+    }
+
     private fun activateEasterEgg() {
         if (isEasterEggActive) return
         isEasterEggActive = true
