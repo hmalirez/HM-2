@@ -94,6 +94,8 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
             insets
         }
 
+        placeTabGroup()
+
         groupPagerAdapter = GroupPagerAdapter(this, emptyList())
         binding.viewPager.adapter = groupPagerAdapter
         binding.viewPager.isUserInputEnabled = true
@@ -1013,6 +1015,19 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
                     replaceAllTextWith67(view.getChildAt(i))
                 }
             }
+        }
+    }
+
+    private fun placeTabGroup() {
+        val tabGroup = binding.tabGroup
+        val bottomSlot = binding.tabSlotBottom
+        val topSlot = binding.tabSlotTop
+        val subsBottom = MmkvManager.decodeSettingsBool(AppConfig.PREF_SUBSCRIPTIONS_BOTTOM, false)
+        (tabGroup.parent as? android.view.ViewGroup)?.removeView(tabGroup)
+        if (subsBottom) {
+            bottomSlot.addView(tabGroup, 0)
+        } else {
+            topSlot.addView(tabGroup)
         }
     }
 }

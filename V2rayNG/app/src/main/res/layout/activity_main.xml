@@ -49,16 +49,16 @@
                         android:visibility="invisible"
                         app:indicatorColor="@color/md_theme_primary" />
 
-                    <com.google.android.material.tabs.TabLayout
-                        android:id="@+id/tab_group"
+                    <LinearLayout
+                        android:id="@+id/tab_slot_top"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        app:tabIndicatorFullWidth="true"
-                        app:tabMode="fixed"
-                        app:tabGravity="fill"
-                        app:tabMaxWidth="0dp"
-                        app:tabRippleColor="@android:color/transparent"
-                        app:tabTextAppearance="@style/TabLayoutTextStyle" />
+                        android:orientation="vertical" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/divider_color_light" />
 
                     <androidx.viewpager2.widget.ViewPager2
                         android:id="@+id/view_pager"
@@ -78,6 +78,25 @@
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
                             android:background="@color/divider_color_light" />
+
+                        <LinearLayout
+                            android:id="@+id/tab_slot_bottom"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                        <com.google.android.material.tabs.TabLayout
+                            android:id="@+id/tab_group"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:tabIndicatorFullWidth="true"
+                            app:tabMode="auto"
+                            app:tabGravity="fill"
+                            app:tabMaxWidth="0dp"
+                            app:tabRippleColor="@android:color/transparent"
+                            app:tabTextAppearance="@style/TabLayoutTextStyle" />
+
+                        </LinearLayout>
 
                         <LinearLayout
                             android:layout_width="match_parent"

@@ -266,6 +266,8 @@
     <string name="title_pref_dynamic_colors">Динамические цвета (Material You)</string>
     <string name="summary_pref_dynamic_colors">Использовать цвета обоев (Android 12+). Требует перезапуска.</string>
     <string name="restart_required">Требуется перезапуск приложения</string>
+    <string name="title_pref_subscriptions_bottom">Подписки снизу</string>
+    <string name="summary_pref_subscriptions_bottom">Переместить вкладки подписок под список серверов</string>
     <string name="title_pref_use_hev_tunnel">Использовать Hev TUN</string>
     <string name="summary_pref_use_hev_tunnel">Если включено, TUN будет использовать hev-socks5-tunnel; иначе будет использован xray-core</string>
     <string name="title_pref_hev_tunnel_loglevel">Подробность журнала HevTun</string>
