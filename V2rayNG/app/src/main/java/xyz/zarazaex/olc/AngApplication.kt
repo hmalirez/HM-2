@@ -2,11 +2,13 @@ package xyz.zarazaex.olc
 
 import android.app.Application
 import android.content.Context
+import android.os.Build
 import androidx.work.Configuration
 import androidx.work.WorkManager
 import com.google.android.material.color.DynamicColors
 import com.tencent.mmkv.MMKV
 import xyz.zarazaex.olc.AppConfig.ANG_PACKAGE
+import xyz.zarazaex.olc.handler.MmkvManager
 import xyz.zarazaex.olc.handler.SettingsManager
 
 class AngApplication : Application() {
@@ -32,9 +34,6 @@ class AngApplication : Application() {
      */
     override fun onCreate() {
         super.onCreate()
-        // DynamicColors отключён — на Android 12-15 он красит статус-бар в акцент ОС
-        // и это нельзя переопределить через statusBarColor
-        // DynamicColors.applyToActivitiesIfAvailable(this)
 
         val mmkvDir = java.io.File(filesDir, "mmkv")
         if (!java.io.File(mmkvDir, "MAIN").exists()) {
@@ -53,6 +52,11 @@ class AngApplication : Application() {
         }
 
         MMKV.initialize(this)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            MmkvManager.decodeSettingsBool(AppConfig.PREF_DYNAMIC_COLORS, false)) {
+            DynamicColors.applyToActivitiesIfAvailable(this)
+        }
 
         // Initialize WorkManager with the custom configuration
         WorkManager.initialize(this, workManagerConfiguration)

@@ -2,6 +2,7 @@ package xyz.zarazaex.olc.ui
 
 import android.content.Context
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -185,8 +186,9 @@ abstract class BaseActivity : AppCompatActivity() {
     }
 
     private fun syncStatusBarWithToolbar(toolbar: Toolbar) {
-        // Статус-бар прозрачный (задан в теме). Управляем только цветом иконок.
-        val bgColor = ContextCompat.getColor(this, R.color.md_theme_surface)
+        val tv = TypedValue()
+        theme.resolveAttribute(com.google.android.material.R.attr.colorSurface, tv, true)
+        val bgColor = tv.data
         WindowCompat.getInsetsController(window, window.decorView)?.isAppearanceLightStatusBars =
             ColorUtils.calculateLuminance(bgColor) > 0.5
     }

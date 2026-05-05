@@ -1,7 +1,10 @@
 package xyz.zarazaex.olc.ui
 
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.preference.CheckBoxPreference
 import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
@@ -28,6 +31,7 @@ class SettingsActivity : BaseActivity() {
 
     class SettingsFragment : PreferenceFragmentCompat() {
 
+        private val dynamicColors by lazy { findPreference<CheckBoxPreference>(AppConfig.PREF_DYNAMIC_COLORS) }
         private val localDns by lazy { findPreference<CheckBoxPreference>(AppConfig.PREF_LOCAL_DNS_ENABLED) }
         private val fakeDns by lazy { findPreference<CheckBoxPreference>(AppConfig.PREF_FAKE_DNS_ENABLED) }
         private val appendHttpProxy by lazy { findPreference<CheckBoxPreference>(AppConfig.PREF_APPEND_HTTP_PROXY) }
@@ -63,7 +67,21 @@ class SettingsActivity : BaseActivity() {
 
             addPreferencesFromResource(R.xml.pref_settings)
 
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                dynamicColors?.isVisible = false
+            }
+
             initPreferenceSummaries()
+
+            dynamicColors?.setOnPreferenceChangeListener { _, _ ->
+                Toast.makeText(context, R.string.restart_required, Toast.LENGTH_SHORT).show()
+                val intent = requireActivity().packageManager
+                    .getLaunchIntentForPackage(requireActivity().packageName)
+                    ?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                requireActivity().finish()
+                intent?.let { startActivity(it) }
+                true
+            }
 
             localDns?.setOnPreferenceChangeListener { _, any ->
                 updateLocalDns(any as Boolean)
