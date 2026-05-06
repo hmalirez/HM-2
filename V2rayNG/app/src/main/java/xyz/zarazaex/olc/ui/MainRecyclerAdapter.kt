@@ -5,8 +5,10 @@ import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.graphics.ColorUtils
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.color.MaterialColors
 import java.util.Collections
 import xyz.zarazaex.olc.AppConfig
 import xyz.zarazaex.olc.R
@@ -35,7 +37,11 @@ class MainRecyclerAdapter(
             MmkvManager.decodeSettingsBool(AppConfig.PREF_DOUBLE_COLUMN_DISPLAY, false)
     private val showCopyButton =
             MmkvManager.decodeSettingsBool(AppConfig.PREF_SHOW_COPY_BUTTON, false)
+    private val showServerIp =
+            MmkvManager.decodeSettingsBool(AppConfig.PREF_SHOW_SERVER_IP, false)
     private var data: MutableList<ServersCache> = mutableListOf()
+    private var minReachablePing: Long? = null
+    private var maxReachablePing: Long? = null
     private var recyclerView: RecyclerView? = null
 
     override fun onAttachedToRecyclerView(rv: RecyclerView) {
@@ -59,6 +65,7 @@ class MainRecyclerAdapter(
 
         if (data.isEmpty() || parsedNewData.isEmpty() || position >= 0) {
             data = parsedNewData.toMutableList()
+            recomputePingRange()
             if (position >= 0 && position in data.indices) {
                 notifyItemChanged(position)
             } else {
@@ -106,6 +113,7 @@ class MainRecyclerAdapter(
                 )
 
         data = parsedNewData.toMutableList()
+        recomputePingRange()
         diffResult.dispatchUpdatesTo(this)
 
         if (isAtTop) {
@@ -162,26 +170,45 @@ class MainRecyclerAdapter(
 
             // Name address
             holder.itemMainBinding.tvName.text = profile.remarks
-            holder.itemMainBinding.tvStatistics.text = getAddress(profile)
+            val addressText = getAddress(profile)
+            holder.itemMainBinding.tvStatistics.text = addressText
+            holder.itemMainBinding.tvStatistics.visibility =
+                    if (addressText.isEmpty()) View.GONE else View.VISIBLE
 
             // TestResult
             val aff = MmkvManager.decodeServerAffiliationInfo(guid)
             holder.itemMainBinding.tvTestResult.text = aff?.getTestDelayString().orEmpty()
-            if ((aff?.testDelayMillis ?: 0L) < 0L) {
-                holder.itemMainBinding.tvTestResult.setTextColor(
-                        ContextCompat.getColor(context, R.color.colorPingRed)
-                )
-            } else {
-                holder.itemMainBinding.tvTestResult.setTextColor(
-                        ContextCompat.getColor(context, R.color.colorPing)
-                )
-            }
+            holder.itemMainBinding.tvTestResult.setTextColor(
+                    getPingColor(context, aff?.testDelayMillis)
+            )
+            (holder.itemMainBinding.tvTestResult.layoutParams as? ViewGroup.MarginLayoutParams)?.marginStart =
+                    if (addressText.isEmpty()) 0 else 6.dpToPx(context)
 
-            // layoutIndicator
-            if (guid == MmkvManager.getSelectServer()) {
-                holder.itemMainBinding.layoutIndicator.setBackgroundResource(R.color.colorIndicator)
-            } else {
-                holder.itemMainBinding.layoutIndicator.setBackgroundResource(0)
+            // Keep selected state very quiet: only a soft surface step, no hard outline.
+            val isSelected = guid == MmkvManager.getSelectServer()
+            holder.itemMainBinding.cardContainer.apply {
+                val surfaceColor = MaterialColors.getColor(
+                    context,
+                    com.google.android.material.R.attr.colorSurfaceContainerLow,
+                    Color.TRANSPARENT
+                )
+                val selectedSurfaceColor = MaterialColors.getColor(
+                    context,
+                    com.google.android.material.R.attr.colorSurfaceContainerHigh,
+                    surfaceColor
+                )
+
+                setCardBackgroundColor(if (isSelected) selectedSurfaceColor else surfaceColor)
+                strokeWidth = if (isSelected) 1.dpToPx(context) else 0
+                strokeColor = if (isSelected) {
+                    MaterialColors.getColor(
+                        context,
+                        com.google.android.material.R.attr.colorOutlineVariant,
+                        Color.TRANSPARENT
+                    )
+                } else {
+                    Color.TRANSPARENT
+                }
             }
 
             // subscription remarks
@@ -223,7 +250,50 @@ class MainRecyclerAdapter(
      * @return Formatted address string
      */
     private fun getAddress(profile: ProfileItem): String {
+        if (!showServerIp) {
+            return ""
+        }
         return AngConfigManager.generateDescription(profile)
+    }
+
+    private fun getPingColor(context: android.content.Context, delayMillis: Long?): Int {
+        val delay = delayMillis ?: return MaterialColors.getColor(
+                context,
+                com.google.android.material.R.attr.colorOnSurfaceVariant,
+                ContextCompat.getColor(context, R.color.colorPing)
+        )
+        if (delay == 0L) {
+            return MaterialColors.getColor(
+                    context,
+                    com.google.android.material.R.attr.colorOnSurfaceVariant,
+                    ContextCompat.getColor(context, R.color.colorPing)
+            )
+        }
+        return when {
+            delay < 0L -> ContextCompat.getColor(context, R.color.colorPingRed)
+            minReachablePing == null || maxReachablePing == null -> ContextCompat.getColor(context, R.color.colorPingGood)
+            minReachablePing == maxReachablePing -> ContextCompat.getColor(context, R.color.colorPingGood)
+            else -> {
+                val min = minReachablePing ?: delay
+                val max = maxReachablePing ?: delay
+                val relative = ((delay - min).toFloat() / (max - min).toFloat()).coerceIn(0f, 1f)
+                when {
+                    relative <= 0.33f -> ContextCompat.getColor(context, R.color.colorPingGood)
+                    relative <= 0.66f -> ContextCompat.getColor(context, R.color.colorPingMedium)
+                    else -> ContextCompat.getColor(context, R.color.colorPingRed)
+                }
+            }
+        }
+    }
+
+    private fun recomputePingRange() {
+        val delays = data.mapNotNull { item ->
+            MmkvManager.decodeServerAffiliationInfo(item.guid)
+                ?.testDelayMillis
+                ?.takeIf { it > 0L }
+        }
+        minReachablePing = delays.minOrNull()
+        maxReachablePing = delays.maxOrNull()
     }
 
     /**
@@ -245,6 +315,7 @@ class MainRecyclerAdapter(
         val idx = data.indexOfFirst { it.guid == guid }
         if (idx >= 0) {
             data.removeAt(idx)
+            recomputePingRange()
             notifyItemRemoved(idx)
             notifyItemRangeChanged(idx, data.size - idx)
         }
@@ -253,6 +324,10 @@ class MainRecyclerAdapter(
     fun setSelectServer(fromPosition: Int, toPosition: Int) {
         notifyItemChanged(fromPosition)
         notifyItemChanged(toPosition)
+    }
+
+    private fun Int.dpToPx(context: android.content.Context): Int {
+        return (this * context.resources.displayMetrics.density).toInt()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder {

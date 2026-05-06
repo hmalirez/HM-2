@@ -159,6 +159,11 @@
     <string name="title_pref_auto_sort_after_test">Автосортировка профилей</string>
     <string name="summary_pref_auto_sort_after_test">Автоматическая сортировка профилей после проверки (результаты проверки могут быть неточными)</string>
 
+    <string name="title_pref_show_copy_button">Показывать кнопку копирования</string>
+    <string name="summary_pref_show_copy_button">Показывать кнопку для копирования конфигурации сервера в буфер обмена</string>
+    <string name="title_pref_show_server_ip">Показывать IP / хост сервера</string>
+    <string name="summary_pref_show_server_ip">Отображать IP-адрес или хост сервера под названием</string>
+
     <string name="title_mux_settings">Настройки мультиплексирования</string>
     <string name="title_pref_mux_enabled">Использовать мультиплексирование</string>
     <string name="summary_pref_mux_enabled">Быстрее, но это может привести к нестабильному соединению.\nНиже можно настроить обработку TCP, UDP и QUIC.</string>
@@ -237,8 +242,6 @@
     <string name="title_pref_group_all_display">Общая вкладка групп</string>
     <string name="summary_pref_group_all_display">Показывать дополнительную вкладку со всеми профилями групп</string>
 
-    <string name="title_pref_show_copy_button">Кнопка копирования</string>
-    <string name="summary_pref_show_copy_button">Показывать кнопку копирования конфигурации сервера в буфер обмена</string>
     <!-- AboutActivity -->
     <string name="title_pref_feedback">Обратная связь</string>
     <string name="summary_pref_feedback">Предложить улучшение или сообщить об ошибке на GitHub</string>

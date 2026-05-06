@@ -128,15 +128,15 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
             insets
         }
 
-        findViewById<android.widget.TextView>(R.id.drawer_settings)?.setOnClickListener {
+        findViewById<android.view.View>(R.id.drawer_settings)?.setOnClickListener {
             requestActivityLauncher.launch(Intent(this, SettingsActivity::class.java))
             binding.drawerLayout.closeDrawer(androidx.core.view.GravityCompat.START)
         }
-        findViewById<android.widget.TextView>(R.id.drawer_per_app)?.setOnClickListener {
+        findViewById<android.view.View>(R.id.drawer_per_app)?.setOnClickListener {
             requestActivityLauncher.launch(Intent(this, PerAppProxyActivity::class.java))
             binding.drawerLayout.closeDrawer(androidx.core.view.GravityCompat.START)
         }
-        findViewById<android.widget.TextView>(R.id.drawer_check_update)?.setOnClickListener {
+        findViewById<android.view.View>(R.id.drawer_check_update)?.setOnClickListener {
             startActivity(Intent(this, CheckUpdateActivity::class.java))
             binding.drawerLayout.closeDrawer(androidx.core.view.GravityCompat.START)
         }
@@ -215,12 +215,16 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
                 // Молния — стоп-кнопка, всегда активна во время теста
                 binding.btnSummaryLite.isEnabled = true
                 binding.btnSummaryLite.alpha = 1.0f
-                binding.btnSummaryLite.setImageResource(R.drawable.ic_stop_24dp)
-                binding.btnSummaryLite.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_active))
+                binding.btnSummaryLite.setIconResource(R.drawable.ic_stop_24dp)
+                binding.btnSummaryLite.backgroundTintList = ColorStateList.valueOf(
+                    com.google.android.material.color.MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimaryContainer, 0)
+                )
             } else {
                 setButtonsEnabled(true)
-                binding.btnSummaryLite.setImageResource(R.drawable.bolt_24)
-                binding.btnSummaryLite.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_inactive))
+                binding.btnSummaryLite.setIconResource(R.drawable.bolt_24)
+                binding.btnSummaryLite.backgroundTintList = ColorStateList.valueOf(
+                    com.google.android.material.color.MaterialColors.getColor(this, com.google.android.material.R.attr.colorSecondaryContainer, 0)
+                )
             }
         }
 
@@ -485,31 +489,48 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
     }
 
     private fun applyRunningState(isLoading: Boolean, isRunning: Boolean) {
+        val secContainer = ColorStateList.valueOf(
+            com.google.android.material.color.MaterialColors.getColor(this, com.google.android.material.R.attr.colorSecondaryContainer, 0)
+        )
         if (isLoading) {
-            // Идёт процесс подключения/отключения — блокируем всё
             setButtonsEnabled(false)
-            binding.fab.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_inactive))
+            binding.fab.backgroundTintList = secContainer
+            setStatusDot(DotState.LOADING)
             return
         }
 
         if (isRunning) {
-            // Подключены: только FAB (отключить) активен, остальное блокируем
             setSecondaryButtonsEnabled(false)
             binding.fab.isEnabled = true
             binding.fab.alpha = 1.0f
             binding.fab.backgroundTintList = accentColor()
-            binding.btnSummaryLite.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_inactive))
+            binding.btnSummaryLite.backgroundTintList = secContainer
             binding.fab.contentDescription = getString(R.string.action_stop_service)
             setTestState(getString(R.string.connection_connected))
             binding.layoutTest.isFocusable = true
+            setStatusDot(DotState.CONNECTED)
         } else {
             setButtonsEnabled(true)
-            binding.fab.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_inactive))
-            binding.btnSummaryLite.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.color_fab_inactive))
+            binding.fab.backgroundTintList = accentColor()
+            binding.btnSummaryLite.backgroundTintList = secContainer
             binding.fab.contentDescription = getString(R.string.tasker_start_service)
             setTestState(getString(R.string.connection_not_connected))
             binding.layoutTest.isFocusable = false
+            setStatusDot(DotState.IDLE)
         }
+    }
+
+    private enum class DotState { IDLE, CONNECTED, LOADING }
+
+    private fun setStatusDot(state: DotState) {
+        val dot = binding.statusDot
+        dot.animate().cancel()
+        dot.alpha = 1f; dot.scaleX = 1f; dot.scaleY = 1f
+        dot.backgroundTintList = ColorStateList.valueOf(when (state) {
+            DotState.CONNECTED -> ContextCompat.getColor(this, R.color.status_connected)
+            DotState.LOADING   -> com.google.android.material.color.MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimaryContainer, 0)
+            DotState.IDLE      -> com.google.android.material.color.MaterialColors.getColor(this, com.google.android.material.R.attr.colorOutline, 0)
+        })
     }
 
     override fun onResume() {

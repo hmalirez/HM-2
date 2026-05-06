@@ -74,6 +74,7 @@ object AppConfig {
     const val PREF_HEV_TUNNEL_RW_TIMEOUT = "pref_hev_tunnel_rw_timeout_v2"
     const val PREF_AUTO_SORT_AFTER_TEST = "pref_auto_sort_after_test"
     const val PREF_SHOW_COPY_BUTTON = "pref_show_copy_button"
+    const val PREF_SHOW_SERVER_IP = "pref_show_server_ip"
     const val PREF_DYNAMIC_COLORS = "pref_dynamic_colors"
     const val PREF_SUBSCRIPTIONS_BOTTOM = "pref_subscriptions_bottom"
 

@@ -163,6 +163,8 @@
 
     <string name="title_pref_show_copy_button">Show copy button</string>
     <string name="summary_pref_show_copy_button">Show button to copy server configuration to clipboard</string>
+    <string name="title_pref_show_server_ip">Show server IP / host</string>
+    <string name="summary_pref_show_server_ip">Display the server IP address or host under the server name</string>
 
     <string name="title_mux_settings">Mux Settings</string>
     <string name="title_pref_mux_enabled">Enable Mux</string>

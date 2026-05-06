@@ -120,6 +120,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             list
         }
 
+        pinSelectedGuidToTop(serverList)
         updateCache()
         updateListAction.value = -1
     }
@@ -638,6 +639,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         ))
+        pinSelectedCacheItemToTop(serversCache)
     }
 
     fun sortByTestResults() {
@@ -689,6 +691,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val serversBySubId = allServerDelays.groupBy { it.subId }
         serversBySubId.forEach { (subId, servers) ->
             val sortedList = servers.map { it.guid }.toMutableList()
+            pinSelectedGuidToTop(sortedList)
             MmkvManager.encodeServerList(sortedList, subId)
         }
     }
@@ -716,9 +719,30 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         serverDelays.sortWith(compareBy({ !it.isFav }, { it.testDelayMillis }))
 
         val sortedServerList = serverDelays.map { it.guid }.toMutableList()
+        pinSelectedGuidToTop(sortedServerList)
 
         // Save the sorted list for this subscription
         MmkvManager.encodeServerList(sortedServerList, subId)
+    }
+
+    private fun pinSelectedGuidToTop(list: MutableList<String>) {
+        val selectedGuid = MmkvManager.getSelectServer().orEmpty()
+        if (selectedGuid.isEmpty()) return
+        val index = list.indexOf(selectedGuid)
+        if (index > 0) {
+            list.removeAt(index)
+            list.add(0, selectedGuid)
+        }
+    }
+
+    private fun pinSelectedCacheItemToTop(list: MutableList<ServersCache>) {
+        val selectedGuid = MmkvManager.getSelectServer().orEmpty()
+        if (selectedGuid.isEmpty()) return
+        val index = list.indexOfFirst { it.guid == selectedGuid }
+        if (index > 0) {
+            val selectedItem = list.removeAt(index)
+            list.add(0, selectedItem)
+        }
     }
 
 
