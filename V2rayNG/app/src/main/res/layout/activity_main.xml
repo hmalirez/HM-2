@@ -23,7 +23,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 app:title="@string/app_name"
-                app:titleCentered="true" />
+                app:titleCentered="true"
+                app:titleTextColor="?attr/colorOnSurface" />
 
         </com.google.android.material.appbar.AppBarLayout>
 
@@ -123,9 +124,9 @@
                                 app:rippleColor="#33FFFFFF"
                                 app:fabSize="normal"
                                 app:maxImageSize="28dp"
-                                app:elevation="4dp"
-                                app:pressedTranslationZ="8dp"
-                                app:hoveredFocusedTranslationZ="6dp" />
+                                app:elevation="0dp"
+                                app:pressedTranslationZ="0dp"
+                                app:hoveredFocusedTranslationZ="0dp" />
 
                             <com.google.android.material.floatingactionbutton.FloatingActionButton
                                 android:id="@+id/fab"
@@ -140,9 +141,9 @@
                                 app:rippleColor="#33FFFFFF"
                                 app:fabSize="normal"
                                 app:maxImageSize="28dp"
-                                app:elevation="4dp"
-                                app:pressedTranslationZ="8dp"
-                                app:hoveredFocusedTranslationZ="6dp" />
+                                app:elevation="0dp"
+                                app:pressedTranslationZ="0dp"
+                                app:hoveredFocusedTranslationZ="0dp" />
 
                         </LinearLayout>
 

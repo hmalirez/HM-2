@@ -2,6 +2,7 @@ package xyz.zarazaex.olc.ui
 
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.net.Uri
 import android.net.VpnService
 import android.os.Bundle
@@ -11,6 +12,8 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
+import androidx.core.graphics.drawable.DrawableCompat
+import com.google.android.material.color.MaterialColors
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -509,6 +512,13 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
 
+        val iconColor = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface, Color.BLACK)
+        for (i in 0 until menu.size()) {
+            menu.getItem(i).icon?.let {
+                DrawableCompat.setTint(DrawableCompat.wrap(it).mutate(), iconColor)
+            }
+        }
+
         val searchItem = menu.findItem(R.id.search_view)
         val searchView = searchItem.actionView as SearchView
 
@@ -672,6 +682,7 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
 
     private fun importAllSubsOnStartup() {
         showLoading()
+        setTestState(getString(R.string.connection_updating_profiles))
         lifecycleScope.launch(Dispatchers.IO) {
             val result = AngConfigManager.updateConfigViaSubAll()
             val removed = mainViewModel.removeDuplicateByIpAll()
@@ -694,6 +705,7 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
      */
     fun importConfigViaSub(): Boolean {
         showLoading()
+        setTestState(getString(R.string.connection_updating_profiles))
 
         lifecycleScope.launch(Dispatchers.IO) {
             val result = mainViewModel.updateConfigViaSubAll()
