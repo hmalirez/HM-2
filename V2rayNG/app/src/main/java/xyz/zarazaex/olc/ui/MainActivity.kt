@@ -398,8 +398,16 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
 
                 showStatus("Обновление профилей...")
                 showLoading()
-                // Иконка молнии → стоп пока идёт обновление
+                // Иконка молнии → стоп пока идёт обновление; FAB и меню блокируем
                 binding.btnSummaryLite.setIconResource(R.drawable.ic_stop_24dp)
+                binding.btnSummaryLite.isEnabled = true
+                binding.btnSummaryLite.alpha = 1.0f
+                binding.fab.isEnabled = false
+                binding.fab.alpha = 0.5f
+                val menu = binding.toolbar.menu
+                menu.findItem(R.id.real_ping_all)?.let { it.isEnabled = false; it.icon?.alpha = 128 }
+                menu.findItem(R.id.filter_by_country)?.let { it.isEnabled = false; it.icon?.alpha = 128 }
+                menu.findItem(R.id.sub_update)?.let { it.isEnabled = false; it.icon?.alpha = 128 }
                 isLiteTesting = true
 
                 val result = withContext(Dispatchers.IO) { mainViewModel.updateConfigViaSubAll() }
@@ -642,7 +650,7 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
         }
 
         R.id.sub_update -> {
-            setButtonsEnabled(false)
+            setSecondaryButtonsEnabled(false)
             importConfigViaSub()
             true
         }
