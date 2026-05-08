@@ -235,21 +235,24 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
         mainViewModel.liteTestFinished.observe(this) { finished ->
             if (finished && isLiteTesting) {
                 isLiteTesting = false
-                mainViewModel.sortByTestResults()
 
-                val firstReachable = mainViewModel.serversCache.firstOrNull { cache ->
-                    (MmkvManager.decodeServerAffiliationInfo(cache.guid)?.testDelayMillis ?: 0L) > 0L
-                }
+                // Ищем лучший сервер ДО сортировки, прямо из текущего cache
+                val firstReachable = mainViewModel.serversCache
+                    .filter { (MmkvManager.decodeServerAffiliationInfo(it.guid)?.testDelayMillis ?: 0L) > 0L }
+                    .minByOrNull { MmkvManager.decodeServerAffiliationInfo(it.guid)?.testDelayMillis ?: Long.MAX_VALUE }
+
                 if (firstReachable != null) {
                     MmkvManager.setSelectServer(firstReachable.guid)
-                    mainViewModel.reloadServerList()  // reload AFTER selection so indicator renders correctly
+                }
+
+                mainViewModel.sortByTestResults()
+                mainViewModel.reloadServerList()
+
+                if (firstReachable != null) {
                     showStatus("Подключаемся к быстрейшему серверу")
-                    // Блокируем кнопки на время подключения
-                    setButtonsEnabled(false)
                     applyRunningState(isLoading = true, isRunning = false)
                     startV2RayWithPermission()
                 } else {
-                    mainViewModel.reloadServerList()
                     showStatus("Нет доступных серверов!")
                     setButtonsEnabled(true)
                 }
