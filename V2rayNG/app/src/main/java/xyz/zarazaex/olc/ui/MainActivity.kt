@@ -548,11 +548,19 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
             return
         }
 
+        val onPrimary = ColorStateList.valueOf(
+            com.google.android.material.color.MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnPrimary, 0)
+        )
+        val onSecContainer = ColorStateList.valueOf(
+            com.google.android.material.color.MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSecondaryContainer, 0)
+        )
+
         if (isRunning) {
             setSecondaryButtonsEnabled(false)
             binding.fab.isEnabled = true
             binding.fab.alpha = 1.0f
             binding.fab.backgroundTintList = accentColor()
+            binding.fab.iconTint = onPrimary
             binding.btnSummaryLite.backgroundTintList = secContainer
             binding.fab.contentDescription = getString(R.string.action_stop_service)
             setTestState(getString(R.string.connection_connected))
@@ -560,7 +568,8 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
             setStatusDot(DotState.CONNECTED)
         } else {
             setButtonsEnabled(true)
-            binding.fab.backgroundTintList = accentColor()
+            binding.fab.backgroundTintList = secContainer
+            binding.fab.iconTint = onSecContainer
             binding.btnSummaryLite.backgroundTintList = secContainer
             binding.fab.contentDescription = getString(R.string.tasker_start_service)
             setTestState(getString(R.string.connection_not_connected))

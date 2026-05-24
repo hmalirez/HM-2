@@ -144,9 +144,9 @@
                                 android:contentDescription="@string/tasker_start_service"
                                 app:icon="@drawable/shield_24"
                                 app:iconSize="26dp"
-                                app:backgroundTint="?attr/colorPrimary"
-                                app:iconTint="?attr/colorOnPrimary"
-                                app:rippleColor="?attr/colorOnPrimary"
+                                app:backgroundTint="?attr/colorSecondaryContainer"
+                                app:iconTint="?attr/colorOnSecondaryContainer"
+                                app:rippleColor="?attr/colorOnSecondaryContainer"
                                 app:layout_constraintEnd_toEndOf="parent"
                                 app:layout_constraintTop_toTopOf="parent"
                                 app:layout_constraintBottom_toBottomOf="parent" />
