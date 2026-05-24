@@ -44,7 +44,7 @@ class RealPingWorkerService(
     companion object {
         private const val RESULT_BATCH_SIZE = 32
         private const val FLUSH_INTERVAL_MS = 1000L
-        private const val PING_CHUNK_SIZE = 5
+        private const val PING_CHUNK_SIZE = 20
     }
 
     data class PingItem(val guid: String, val config: String)
