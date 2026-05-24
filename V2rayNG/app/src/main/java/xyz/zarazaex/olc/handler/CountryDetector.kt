@@ -16,7 +16,11 @@ object CountryDetector {
     // ── Emoji flag → ISO 2-letter country code ────────────────────────────────
 
     /** Extract first flag emoji found in [text] and return its ISO country code (e.g. "RU"). */
-    fun extractFlagCode(text: String): String? {
+    fun extractFlagCode(text: String): String? = extractAllFlagCodes(text).firstOrNull()
+
+    /** Extract all flag emojis found in [text] and return their ISO country codes. */
+    fun extractAllFlagCodes(text: String): List<String> {
+        val result = mutableListOf<String>()
         val codePoints = text.codePoints().toArray()
         var i = 0
         while (i < codePoints.size - 1) {
@@ -25,11 +29,13 @@ object CountryDetector {
             if (cp1 in 0x1F1E6..0x1F1FF && cp2 in 0x1F1E6..0x1F1FF) {
                 val c1 = ('A'.code + (cp1 - 0x1F1E6)).toChar()
                 val c2 = ('A'.code + (cp2 - 0x1F1E6)).toChar()
-                return "$c1$c2"
+                result.add("$c1$c2")
+                i += 2
+                continue
             }
             i++
         }
-        return null
+        return result
     }
 
     /** Get best country code for a server (emoji first, then cache). */
@@ -39,6 +45,16 @@ object CountryDetector {
             MmkvManager.getCountryCache(serverIp)?.let { return it }
         }
         return UNKNOWN
+    }
+
+    /** Get all country codes for a server (all emojis, then cache fallback). */
+    fun getCountryCodes(remarks: String, serverIp: String?): List<String> {
+        val flags = extractAllFlagCodes(remarks)
+        if (flags.isNotEmpty()) return flags
+        if (!serverIp.isNullOrBlank() && !isPrivateIp(serverIp)) {
+            MmkvManager.getCountryCache(serverIp)?.let { return listOf(it) }
+        }
+        return listOf(UNKNOWN)
     }
 
     // ── Flag emoji rendering ──────────────────────────────────────────────────

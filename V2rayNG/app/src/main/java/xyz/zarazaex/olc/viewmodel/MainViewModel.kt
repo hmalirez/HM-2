@@ -185,8 +185,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val profile = MmkvManager.decodeServerConfig(guid) ?: continue
 
             if (activeCountryFilter.isNotEmpty()) {
-                val code = CountryDetector.getCountryCode(profile.remarks, profile.server)
-                if (code in activeCountryFilter) continue
+                val codes = CountryDetector.getCountryCodes(profile.remarks, profile.server)
+                if (codes.all { it in activeCountryFilter }) continue
             }
 
             val delay = MmkvManager.decodeServerAffiliationInfo(guid)?.testDelayMillis ?: 0L
@@ -260,11 +260,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         var hasUnknown = false
         for (guid in MmkvManager.decodeAllServerList()) {
             val profile = MmkvManager.decodeServerConfig(guid) ?: continue
-            val code = CountryDetector.getCountryCode(profile.remarks, profile.server)
-            if (code == CountryDetector.UNKNOWN) {
-                hasUnknown = true
-            } else {
-                result[code] = "${CountryDetector.codeToFlag(code)} ${CountryDetector.codeToName(code)}"
+            val codes = CountryDetector.getCountryCodes(profile.remarks, profile.server)
+            for (code in codes) {
+                if (code == CountryDetector.UNKNOWN) {
+                    hasUnknown = true
+                } else {
+                    result[code] = "${CountryDetector.codeToFlag(code)} ${CountryDetector.codeToName(code)}"
+                }
             }
         }
         if (hasUnknown) {
