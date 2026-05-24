@@ -573,7 +573,9 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
             binding.fab.iconTint = onSecContainer
             binding.btnSummaryLite.backgroundTintList = secContainer
             binding.fab.contentDescription = getString(R.string.tasker_start_service)
-            setTestState(getString(R.string.connection_not_connected))
+            if (mainViewModel.isTesting.value != true && statusResetJob?.isActive != true) {
+                setTestState(getString(R.string.connection_not_connected))
+            }
             binding.layoutTest.isFocusable = false
             setStatusDot(DotState.IDLE)
         }
