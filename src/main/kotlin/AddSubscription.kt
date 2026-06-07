@@ -124,14 +124,14 @@ fun main() {
     
     val guid1 = manager.addSubscription(
         remarks = "БЕЛЫЕ Z",
-        url = "https://raw.githubusercontent.com/zieng2/wl/refs/heads/main/vless_universal.txt",
+        url = "https://raw.githubusercontent.com/hmalirez/Page/refs/heads/main/iran.txt",
         autoUpdate = true
     )
     println("Добавлена подписка БЕЛЫЕ Z: $guid1")
     
     val guid2 = manager.addSubscription(
         remarks = "БЕЛЫЕ W",
-        url = "https://raw.githubusercontent.com/whoahaow/rjsxrd/refs/heads/main/githubmirror/bypass/bypass-all.txt",
+        url = "https://raw.githubusercontent.com/hmalirez/Page/refs/heads/main/iran.txt",
         autoUpdate = true
     )
     println("Добавлена подписка БЕЛЫЕ W: $guid2")
@@ -144,9 +144,9 @@ fun main() {
     println("Добавлена подписка KEY: $guid3")
     
     println("\nОбновление подписок...")
-    manager.updateSubscription(guid1, "https://raw.githubusercontent.com/zieng2/wl/refs/heads/main/vless_universal.txt")
-    manager.updateSubscription(guid2, "https://raw.githubusercontent.com/whoahaow/rjsxrd/refs/heads/main/githubmirror/bypass/bypass-all.txt")
-    manager.updateSubscription(guid3, "https://key.zarazaex.xyz/sub")
+    manager.updateSubscription(guid1, "https://raw.githubusercontent.com/hmalirez/Page/refs/heads/main/iran.txt")
+    manager.updateSubscription(guid2, "https://raw.githubusercontent.com/hmalirez/Page/refs/heads/main/iran.txt")
+    manager.updateSubscription(guid3, "https://raw.githubusercontent.com/hmalirez/Page/refs/heads/main/iran.txt")
     
     println("\nПодписки успешно добавлены и обновлены в $mmkvPath")
 }
